@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import api from '../lib/api';
 import { buyDigitalProduct } from '../lib/razorpay';
 import { useAuth } from '../context/AuthContext';
-import { Icon, EmptyState, Badge } from '../components/ui';
+import { Icon, EmptyState, Badge, ErrorState } from '../components/ui';
 import ProductImage from '../components/ui/ProductImage';
 import { categoryLabels, categoryIcons, categoryLabel } from '../lib/productImage';
 
@@ -30,9 +30,10 @@ export default function CatalogPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ['store-products', category, search],
     queryFn: () => api.get('/digital-products', { params: { category, search, limit: 50 } }).then((r) => r.data),
+    retry: 1,
   });
 
   const { data: cats = [] } = useQuery({
@@ -245,7 +246,16 @@ export default function CatalogPage() {
           )}
 
           {/* Grid */}
-          {isLoading ? (
+          {isError ? (
+            <div className="card">
+              <ErrorState
+                error={error}
+                title="Couldn't load products"
+                onRetry={() => refetch()}
+                retrying={isFetching}
+              />
+            </div>
+          ) : isLoading ? (
             <div className="grid grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="card !p-0 overflow-hidden">

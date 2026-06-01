@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import api from '../lib/api';
 import { buyDigitalProduct } from '../lib/razorpay';
 import { useAuth } from '../context/AuthContext';
-import { Icon, ProductImage } from '../components/ui';
+import { Icon, ProductImage, ErrorState } from '../components/ui';
 import { categoryLabel } from '../lib/productImage';
 
 export default function ProductDetailPage() {
@@ -16,10 +16,11 @@ export default function ProductDetailPage() {
   const [activeImg, setActiveImg] = useState(0);
   const queryClient = useQueryClient();
 
-  const { data: product, isLoading } = useQuery({
+  const { data: product, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ['store-product', slug],
     queryFn: () => api.get(`/digital-products/slug/${slug}`).then((r) => r.data),
     enabled: !!slug,
+    retry: 1,
   });
 
   // Check ownership
@@ -77,11 +78,34 @@ export default function ProductDetailPage() {
     );
   }
 
+  // A real failure (network/CORS/5xx) that isn't a genuine 404 → offer retry
+  if (isError && error?.response?.status !== 404) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <Link to="/" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-fg mb-5">
+          <Icon name="arrowLeft" className="w-4 h-4" /> Back to Store
+        </Link>
+        <div className="card">
+          <ErrorState
+            error={error}
+            title="Couldn't load this product"
+            onRetry={() => refetch()}
+            retrying={isFetching}
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (!product) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-20 text-center">
+        <div className="mx-auto w-16 h-16 rounded-2xl bg-surface-2 border border-line flex items-center justify-center text-subtle mb-5">
+          <Icon name="package" className="w-8 h-8" />
+        </div>
         <h2 className="text-xl font-display font-bold text-fg">Product not found</h2>
-        <Link to="/" className="btn-primary inline-flex mt-6">Back to Store</Link>
+        <p className="text-sm text-muted mt-1.5">This product may have been removed or is no longer available.</p>
+        <Link to="/" className="btn-primary inline-flex mt-6"><Icon name="store" className="w-4 h-4" /> Back to Store</Link>
       </div>
     );
   }

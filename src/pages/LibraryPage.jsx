@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
-import { Icon, EmptyState, Badge, ProductImage } from '../components/ui';
+import { Icon, EmptyState, ErrorState, Badge, ProductImage } from '../components/ui';
 import { categoryLabel, resolveProductSlug } from '../lib/productImage';
 
 const FILTERS = [
@@ -14,9 +14,10 @@ const FILTERS = [
 ];
 
 export default function LibraryPage() {
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ['my-digital-library'],
     queryFn: () => api.get('/digital-purchases/my-library').then((r) => r.data),
+    retry: 1,
   });
 
   const purchases = data?.purchases || [];
@@ -113,7 +114,7 @@ export default function LibraryPage() {
       </div>
 
       {/* Stats */}
-      {!isLoading && purchases.length > 0 && (
+      {!isLoading && !isError && purchases.length > 0 && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
           <StatTile icon="package" tone="brand" label="Total products" value={stats.total} />
           <StatTile icon="checkCircle" tone="success" label="Active" value={stats.active} />
@@ -123,7 +124,7 @@ export default function LibraryPage() {
       )}
 
       {/* Toolbar */}
-      {!isLoading && purchases.length > 0 && (
+      {!isLoading && !isError && purchases.length > 0 && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-8">
           <div className="flex flex-wrap items-center gap-1.5">
             {FILTERS.map((f) => (
@@ -170,6 +171,15 @@ export default function LibraryPage() {
                 </div>
               </div>
             ))}
+          </div>
+        ) : isError ? (
+          <div className="card">
+            <ErrorState
+              error={error}
+              title="Couldn't load your library"
+              onRetry={() => refetch()}
+              retrying={isFetching}
+            />
           </div>
         ) : purchases.length === 0 ? (
           <div className="card">

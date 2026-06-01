@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 import CatalogPage from './pages/CatalogPage';
 import ProductDetailPage from './pages/ProductDetailPage';
@@ -21,7 +22,9 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider queryClient={queryClient}>
         <BrowserRouter>
-          <AppShell />
+          <ErrorBoundary>
+            <AppShell />
+          </ErrorBoundary>
           <Toaster
           position="top-right"
           toastOptions={{

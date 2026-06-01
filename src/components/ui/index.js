@@ -6,5 +6,6 @@ export { default as Badge } from './Badge';
 export { default as Spinner } from './Spinner';
 export { default as Skeleton } from './Skeleton';
 export { default as EmptyState } from './EmptyState';
+export { default as ErrorState, errorMessage } from './ErrorState';
 export { default as ThemeToggle } from './ThemeToggle';
 export { default as ProductImage } from './ProductImage';
