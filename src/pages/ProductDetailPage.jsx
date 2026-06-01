@@ -61,6 +61,15 @@ export default function ProductDetailPage() {
     }
   };
 
+  // NOTE: all hooks must run on every render (before any early return) to
+  // satisfy the Rules of Hooks. These are null-safe when product is undefined.
+  const gallery = useMemo(() => {
+    const imgs = [];
+    if (product?.thumbnailUrl) imgs.push(product.thumbnailUrl);
+    (product?.previewImages || []).forEach((p) => { if (p?.url && !imgs.includes(p.url)) imgs.push(p.url); });
+    return imgs;
+  }, [product]);
+
   if (isLoading) {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -113,13 +122,6 @@ export default function ProductDetailPage() {
   const discount = product.originalPrice > product.salePrice
     ? Math.round((1 - product.salePrice / product.originalPrice) * 100)
     : 0;
-
-  const gallery = useMemo(() => {
-    const imgs = [];
-    if (product.thumbnailUrl) imgs.push(product.thumbnailUrl);
-    (product.previewImages || []).forEach((p) => { if (p?.url && !imgs.includes(p.url)) imgs.push(p.url); });
-    return imgs;
-  }, [product]);
 
   const activeSrc = gallery[activeImg] || gallery[0] || null;
 
